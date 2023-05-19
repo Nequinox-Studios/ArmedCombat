@@ -17,7 +17,7 @@ class AArmedCombatCharacter : public ACharacter, public IAbilitySystemInterface
 
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* CameraBoom;
+	class UTargetSpringArmComponent* CameraBoom;
 
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -60,8 +60,14 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = Character)
 	uint32 bPressedLockOn:1;
 
+	/** Target Actor for camera lock */
+	UPROPERTY(EditAnywhere, Category = Gameplay)
+	AActor* TargetOpponent { nullptr };
+
 public:
 	AArmedCombatCharacter();
+
+	virtual void Tick(float DeltaTime) override;
 
 protected:
 	/** Called for movement input */
@@ -80,6 +86,9 @@ protected:
 	// To add mapping context
 	virtual void BeginPlay();
 
+	// Update camera position and focus
+	void UpdateCamera();
+
 public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
@@ -89,7 +98,7 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 
 	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	FORCEINLINE class UTargetSpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 };

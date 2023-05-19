@@ -6,7 +6,7 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
-#include "GameFramework/SpringArmComponent.h"
+#include "TargetSpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GAS/ArmedAbilitySystemComponent.h"
@@ -39,7 +39,7 @@ AArmedCombatCharacter::AArmedCombatCharacter()
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	CameraBoom = CreateDefaultSubobject<UTargetSpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
@@ -70,6 +70,15 @@ void AArmedCombatCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+}
+
+void AArmedCombatCharacter::Tick(float DeltaTime)
+{
+	UpdateCamera();
+}
+
+void AArmedCombatCharacter::UpdateCamera()
+{
 }
 
 //////////////////////////////////////////////////////////////////////////
