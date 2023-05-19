@@ -17,18 +17,17 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Target Lock Camera")
 	bool bDrawDebug;
 
+	AActor* CameraTarget {nullptr};
 
 public:
 	UTargetSpringArmComponent();
 
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	void ToggleLockOn(AActor** Target);
+	void ToggleLockOn();
 	void EndTargetLockOn();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Target Lock Camera")
 	bool IsCameraLockedToTarget();
 
-private:
-	AActor* CameraTarget {nullptr};
 };

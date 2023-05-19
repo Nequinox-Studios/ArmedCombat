@@ -17,10 +17,6 @@ class AArmedCombatCharacter : public ACharacter, public IAbilitySystemInterface
 
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* CameraBoom;
-
-	/** Camera boom positioning the camera behind the character */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UTargetSpringArmComponent* TargetCameraBoom;
 	
 	/** Follow camera */
@@ -60,20 +56,17 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "GAS")
 	TArray<TSubclassOf<UArmedGameplayAbility>> DefaultAbilities;*/
 
-	/** When true, player wants to Lock On nearby Target */
-	UPROPERTY(BlueprintReadOnly, Category = Character)
-	uint32 bPressedLockOn:1;
-
-	/** Target Actor for camera lock */
-	UPROPERTY(EditAnywhere, Category = "Target Lock Camera")
-	AActor* CameraTarget { nullptr };
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Target Lock Camera")
-	float LockOnControlRotationRate { 10.f };
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target Lock Camera")
+	float LockOnControlRotationRate { 4.f };
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Target Lock Camera")
-	float LockOnTargetOffsetRate { 10.f };
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target Lock Camera")
+	float LockOnTargetOffsetRate { 4.f };
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target Lock Camera")
+	float LockOnCameraOffsetBias { 0.2f };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target Lock Camera")
+	float PitchBias{ -45.f };
 public:
 	AArmedCombatCharacter();
 

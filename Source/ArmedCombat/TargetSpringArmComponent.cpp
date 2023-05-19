@@ -1,4 +1,6 @@
 #include "TargetSpringArmComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Knight.h"
 
 UTargetSpringArmComponent::UTargetSpringArmComponent()
 {
@@ -29,19 +31,29 @@ void UTargetSpringArmComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	}
 }
 
-void UTargetSpringArmComponent::ToggleLockOn(AActor** Target)
+void UTargetSpringArmComponent::ToggleLockOn()
 {
-
-	if (IsCameraLockedToTarget() || (*Target) == nullptr)
+	if (IsCameraLockedToTarget())
 	{
 		EndTargetLockOn();
 		return;
 	}
 
-	if (((*Target)->GetActorLocation() - GetOwner()->GetActorLocation()).Size() <= MaxTargetLockDistance)
+	TArray<TEnumAsByte<EObjectTypeQuery>> traceObjectTypes;
+	traceObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
+
+	TArray<AActor*> TargetActors;
+	UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetOwner()->GetActorLocation(), MaxTargetLockDistance, traceObjectTypes, AKnight::StaticClass(), TArray<AActor*>{GetOwner()}, TargetActors);
+	
+	for (AActor* Target : TargetActors)
 	{
-		CameraTarget = *Target;
+		if ((Target->GetActorLocation() - GetOwner()->GetActorLocation()).Size() <= MaxTargetLockDistance)
+		{
+			CameraTarget = Target;
+			break;
+		}
 	}
+	
 }
 
 void UTargetSpringArmComponent::EndTargetLockOn()
@@ -50,8 +62,6 @@ void UTargetSpringArmComponent::EndTargetLockOn()
 	{
 		CameraTarget = nullptr;
 	}
-
-	TargetOffset = FVector(0.f, 0.f, 0.f);
 }
 
 bool UTargetSpringArmComponent::IsCameraLockedToTarget()

@@ -18,6 +18,14 @@
 
 AArmedCombatCharacter::AArmedCombatCharacter()
 {
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// REMOVE
+	SetActorScale3D(FVector(0.2f, 0.2f, 0.2f));
+
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 		
@@ -37,13 +45,6 @@ AArmedCombatCharacter::AArmedCombatCharacter()
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
-
-	// Create a camera boom (pulls in towards the player if there is a collision)
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
-	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
-
 
 	TargetCameraBoom = CreateDefaultSubobject<UTargetSpringArmComponent>(TEXT("TargetCameraBoom"));
 	TargetCameraBoom->SetupAttachment(RootComponent);
@@ -89,14 +90,20 @@ void AArmedCombatCharacter::UpdateCamera(float DeltaTime)
 {
 	if (TargetCameraBoom->IsCameraLockedToTarget())
 	{
-		FVector targetVector = CameraTarget->GetActorLocation() - GetActorLocation();
-		FVector NewTargetOffset = FMath::VInterpTo(TargetCameraBoom->TargetOffset, targetVector / 2.f, DeltaTime, LockOnTargetOffsetRate);
+		FVector targetVector = TargetCameraBoom->CameraTarget->GetActorLocation() - GetActorLocation();
+		FVector NewTargetOffset = FMath::VInterpTo(TargetCameraBoom->TargetOffset, targetVector * LockOnCameraOffsetBias, DeltaTime, LockOnTargetOffsetRate);
 		TargetCameraBoom->TargetOffset = NewTargetOffset;
 		
 		FRotator TargetRotator = targetVector.GetSafeNormal().Rotation();
+		TargetRotator.Pitch = PitchBias;
 		FRotator CurrentRotator = GetControlRotation();
 		FRotator NewRotator = FMath::RInterpTo(CurrentRotator, TargetRotator, DeltaTime, LockOnControlRotationRate);		
 		GetController()->SetControlRotation(NewRotator);
+	}
+	else
+	{
+		FVector NewTargetOffset = FMath::VInterpTo(TargetCameraBoom->TargetOffset, FVector(0.f, 0.f, 0.f), DeltaTime, LockOnTargetOffsetRate);
+		TargetCameraBoom->TargetOffset = NewTargetOffset;
 	}
 }
 
@@ -119,7 +126,7 @@ void AArmedCombatCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AArmedCombatCharacter::Look);
 
 		// Lock On Camera
-		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, TargetCameraBoom, &UTargetSpringArmComponent::ToggleLockOn, &CameraTarget);
+		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, TargetCameraBoom, &UTargetSpringArmComponent::ToggleLockOn);
 	}
 }
 
