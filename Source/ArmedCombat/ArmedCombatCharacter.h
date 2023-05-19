@@ -17,8 +17,12 @@ class AArmedCombatCharacter : public ACharacter, public IAbilitySystemInterface
 
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UTargetSpringArmComponent* CameraBoom;
+	class USpringArmComponent* CameraBoom;
 
+	/** Camera boom positioning the camera behind the character */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UTargetSpringArmComponent* TargetCameraBoom;
+	
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
@@ -61,8 +65,14 @@ public:
 	uint32 bPressedLockOn:1;
 
 	/** Target Actor for camera lock */
-	UPROPERTY(EditAnywhere, Category = Gameplay)
-	AActor* TargetOpponent { nullptr };
+	UPROPERTY(EditAnywhere, Category = "Target Lock Camera")
+	AActor* CameraTarget { nullptr };
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Target Lock Camera")
+	float LockOnControlRotationRate { 10.f };
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Target Lock Camera")
+	float LockOnTargetOffsetRate { 10.f };
 
 public:
 	AArmedCombatCharacter();
@@ -75,9 +85,6 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-		
-	/** Called for locking camera target */
-	void LockOn();
 
 protected:
 	// APawn interface
@@ -87,7 +94,7 @@ protected:
 	virtual void BeginPlay();
 
 	// Update camera position and focus
-	void UpdateCamera();
+	void UpdateCamera(float DeltaTime);
 
 public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
@@ -98,7 +105,7 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 
 	/** Returns CameraBoom subobject **/
-	FORCEINLINE class UTargetSpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	FORCEINLINE class UTargetSpringArmComponent* GetCameraBoom() const { return TargetCameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 };
