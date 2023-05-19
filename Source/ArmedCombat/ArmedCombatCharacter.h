@@ -57,7 +57,7 @@ public:
 	TArray<TSubclassOf<UArmedGameplayAbility>> DefaultAbilities;*/
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target Lock Camera")
-	float LockOnControlRotationRate { 4.f };
+	float LockOnControlRotationRate { 3.f };
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target Lock Camera")
 	float LockOnTargetOffsetRate { 4.f };
@@ -66,7 +66,10 @@ public:
 	float LockOnCameraOffsetBias { 0.2f };
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target Lock Camera")
-	float PitchBias{ -45.f };
+	float FreeCamControlRotationRate { 0.5f };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target Lock Camera")
+	float PitchBias{ -25.f };
 public:
 	AArmedCombatCharacter();
 

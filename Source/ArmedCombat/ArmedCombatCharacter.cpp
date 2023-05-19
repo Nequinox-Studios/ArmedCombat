@@ -104,6 +104,16 @@ void AArmedCombatCharacter::UpdateCamera(float DeltaTime)
 	{
 		FVector NewTargetOffset = FMath::VInterpTo(TargetCameraBoom->TargetOffset, FVector(0.f, 0.f, 0.f), DeltaTime, LockOnTargetOffsetRate);
 		TargetCameraBoom->TargetOffset = NewTargetOffset;
+		
+		FRotator CurrentRotator = GetControlRotation();
+		FRotator TargetRotator = FRotator(PitchBias, GetActorRotation().Yaw, 0.f);
+		FRotator NewRotator = FMath::RInterpTo(CurrentRotator, TargetRotator, DeltaTime, FreeCamControlRotationRate);		
+		GetController()->SetControlRotation(NewRotator);
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		//! Seems to be broken if running at the camera
 	}
 }
 
