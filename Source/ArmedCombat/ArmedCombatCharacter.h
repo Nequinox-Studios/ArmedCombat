@@ -17,8 +17,8 @@ class AArmedCombatCharacter : public ACharacter, public IAbilitySystemInterface
 
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* CameraBoom;
-
+	class UTargetSpringArmComponent* TargetCameraBoom;
+	
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
@@ -56,12 +56,24 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "GAS")
 	TArray<TSubclassOf<UArmedGameplayAbility>> DefaultAbilities;*/
 
-	/** When true, player wants to Lock On nearby Target */
-	UPROPERTY(BlueprintReadOnly, Category = Character)
-	uint32 bPressedLockOn:1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target Lock Camera")
+	float LockOnControlRotationRate { 3.f };
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target Lock Camera")
+	float LockOnTargetOffsetRate { 4.f };
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target Lock Camera")
+	float LockOnCameraOffsetBias { 0.2f };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target Lock Camera")
+	float FreeCamControlRotationRate { 0.5f };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target Lock Camera")
+	float PitchBias{ -25.f };
 public:
 	AArmedCombatCharacter();
+
+	virtual void Tick(float DeltaTime) override;
 
 protected:
 	/** Called for movement input */
@@ -69,9 +81,6 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-		
-	/** Called for locking camera target */
-	void LockOn();
 
 protected:
 	// APawn interface
@@ -79,6 +88,9 @@ protected:
 	
 	// To add mapping context
 	virtual void BeginPlay();
+
+	// Update camera position and focus
+	void UpdateCamera(float DeltaTime);
 
 public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
@@ -89,7 +101,7 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 
 	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	FORCEINLINE class UTargetSpringArmComponent* GetCameraBoom() const { return TargetCameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 };

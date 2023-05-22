@@ -6,7 +6,7 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
-#include "GameFramework/SpringArmComponent.h"
+#include "TargetSpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GAS/ArmedAbilitySystemComponent.h"
@@ -18,6 +18,14 @@
 
 AArmedCombatCharacter::AArmedCombatCharacter()
 {
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// REMOVE
+	SetActorScale3D(FVector(0.2f, 0.2f, 0.2f));
+
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 		
@@ -38,15 +46,14 @@ AArmedCombatCharacter::AArmedCombatCharacter()
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 
-	// Create a camera boom (pulls in towards the player if there is a collision)
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
-	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
+	TargetCameraBoom = CreateDefaultSubobject<UTargetSpringArmComponent>(TEXT("TargetCameraBoom"));
+	TargetCameraBoom->SetupAttachment(RootComponent);
+	TargetCameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
+	TargetCameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
+	FollowCamera->SetupAttachment(TargetCameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	AbilitySystemComponent = CreateDefaultSubobject<UArmedAbilitySystemComponent>(TEXT("AbilitySystem"));
@@ -72,6 +79,44 @@ void AArmedCombatCharacter::BeginPlay()
 	}
 }
 
+void AArmedCombatCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	UpdateCamera(DeltaTime);
+}
+
+void AArmedCombatCharacter::UpdateCamera(float DeltaTime)
+{
+	if (TargetCameraBoom->IsCameraLockedToTarget())
+	{
+		FVector targetVector = TargetCameraBoom->CameraTarget->GetActorLocation() - GetActorLocation();
+		FVector NewTargetOffset = FMath::VInterpTo(TargetCameraBoom->TargetOffset, targetVector * LockOnCameraOffsetBias, DeltaTime, LockOnTargetOffsetRate);
+		TargetCameraBoom->TargetOffset = NewTargetOffset;
+		
+		FRotator TargetRotator = targetVector.GetSafeNormal().Rotation();
+		TargetRotator.Pitch = PitchBias;
+		FRotator CurrentRotator = GetControlRotation();
+		FRotator NewRotator = FMath::RInterpTo(CurrentRotator, TargetRotator, DeltaTime, LockOnControlRotationRate);		
+		GetController()->SetControlRotation(NewRotator);
+	}
+	else
+	{
+		FVector NewTargetOffset = FMath::VInterpTo(TargetCameraBoom->TargetOffset, FVector(0.f, 0.f, 0.f), DeltaTime, LockOnTargetOffsetRate);
+		TargetCameraBoom->TargetOffset = NewTargetOffset;
+		
+		FRotator CurrentRotator = GetControlRotation();
+		FRotator TargetRotator = FRotator(PitchBias, GetActorRotation().Yaw, 0.f);
+		FRotator NewRotator = FMath::RInterpTo(CurrentRotator, TargetRotator, DeltaTime, FreeCamControlRotationRate);		
+		GetController()->SetControlRotation(NewRotator);
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		//! Seems to be broken if running at the camera
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -91,10 +136,8 @@ void AArmedCombatCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AArmedCombatCharacter::Look);
 
 		// Lock On Camera
-		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, this, &AArmedCombatCharacter::LockOn);
-
+		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, TargetCameraBoom, &UTargetSpringArmComponent::ToggleLockOn);
 	}
-
 }
 
 void AArmedCombatCharacter::Move(const FInputActionValue& Value)
@@ -125,19 +168,13 @@ void AArmedCombatCharacter::Look(const FInputActionValue& Value)
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
-	if (Controller != nullptr)
+	
 	{
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
 }
-
-void AArmedCombatCharacter::LockOn()
-{
-	bPressedLockOn = 0;
-}
-
 
 //////////////////////////////////////////////////////////////////////////
 // 
