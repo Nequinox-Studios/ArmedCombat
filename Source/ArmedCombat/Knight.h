@@ -7,7 +7,7 @@
 #include "Knight.generated.h"
 
 class AAC_BaseWeapon;
-class UArmedAbilitySystemComponent
+class UArmedAbilitySystemComponent;
 
 UCLASS()
 class AKnight : public ACharacter, public IAbilitySystemInterface
@@ -29,9 +29,6 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "GAS")
 	TArray<TSubclassOf<UArmedGameplayAbility>> DefaultAbilities;*/
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	UArmedAbilitySystemComponent* AbilitySystemComponent;
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
