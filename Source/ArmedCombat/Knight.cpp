@@ -1,9 +1,14 @@
 #include "ArmedCombat\Knight.h"
 #include "AC_BaseWeapon.h"
-#include "GAS/ArmedAbilitySystemComponent.h"
-#include "GAS/ArmedGameplayAbility.h"
-#include "GAS/ArmAttributeSet.h"
 
+
+
+AKnight::AKnight()
+{
+	AbilitySystemComponent = CreateDefaultSubobject<UArmedAbilitySystemComponent>(TEXT("AbilitySystem"));
+
+	Attributes = CreateDefaultSubobject<UArmAttributeSet>("Attributes");
+}
 
 UAbilitySystemComponent* AKnight::GetAbilitySystemComponent() const
 {
@@ -12,7 +17,13 @@ UAbilitySystemComponent* AKnight::GetAbilitySystemComponent() const
 
 void AKnight::PossessedBy(AController* NewController)
 {
+	Super::PossessedBy(NewController);
+	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 
+	InitializeAttributes();
+	GiveAbilities();
+
+	EquipStarterAbilities();
 }
 
 void AKnight::EquipStarterAbilities()
@@ -36,6 +47,34 @@ void AKnight::EquipStarterAbilities()
 
 		}
 
+	}
+}
+
+void AKnight::InitializeAttributes()
+{
+	if (AbilitySystemComponent && DefaultAttributeEffect)
+	{
+		FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+		EffectContext.AddSourceObject(this);
+
+		FGameplayEffectSpecHandle Spechandle = AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributeEffect,1,EffectContext);
+
+		if (Spechandle.IsValid())
+		{
+			FActiveGameplayEffectHandle GEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spechandle.Data.Get());
+		}
+	}
+}
+
+void AKnight::GiveAbilities()
+{
+	if (HasAuthority() && AbilitySystemComponent)
+	{
+		for (TSubclassOf<UArmedGameplayAbility>& Ability : DefaultAbilities)
+		{
+			AbilitySystemComponent->GiveAbility(
+				FGameplayAbilitySpec(Ability, 1, static_cast<int32>(Ability.GetDefaultObject()->AbilityInputID), this));
+		}
 	}
 }
 
