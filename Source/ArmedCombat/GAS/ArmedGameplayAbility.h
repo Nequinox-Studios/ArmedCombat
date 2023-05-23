@@ -25,6 +25,7 @@ UCLASS()
 class UArmedGameplayAbility : public UGameplayAbility
 {
 	GENERATED_BODY()
+	UPROPERTY(EditDefaultsOnly)
 	FGameplayTag InputTag;
 
 public:
