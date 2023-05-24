@@ -4,7 +4,7 @@
 
 UTargetSpringArmComponent::UTargetSpringArmComponent()
 {
-	MaxTargetLockDistance = 900.f;
+	MaxTargetLockDistance = 2000.f;
 	bDrawDebug = true;
 }
 
@@ -33,11 +33,11 @@ void UTargetSpringArmComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 
 void UTargetSpringArmComponent::ToggleLockOn()
 {
-	if (IsCameraLockedToTarget())
+	/*if (IsCameraLockedToTarget())
 	{
 		EndTargetLockOn();
 		return;
-	}
+	}*/
 
 	TArray<TEnumAsByte<EObjectTypeQuery>> traceObjectTypes;
 	traceObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));

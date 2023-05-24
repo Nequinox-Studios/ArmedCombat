@@ -69,6 +69,8 @@ void AArmedCombatCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	TargetCameraBoom->ToggleLockOn();
 }
 
 void AArmedCombatCharacter::Tick(float DeltaTime)
@@ -122,7 +124,7 @@ void AArmedCombatCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AArmedCombatCharacter::Look);
 
-		// Lock On Camera
+		// Lock On Camera // Lock on Always
 		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, TargetCameraBoom, &UTargetSpringArmComponent::ToggleLockOn);
 	}
 }
