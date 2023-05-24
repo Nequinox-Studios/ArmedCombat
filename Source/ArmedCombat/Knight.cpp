@@ -1,6 +1,6 @@
 #include "ArmedCombat\Knight.h"
 #include "AC_BaseWeapon.h"
-
+#include "GameplayEffectTypes.h"
 
 
 AKnight::AKnight()
@@ -24,6 +24,9 @@ void AKnight::PossessedBy(AController* NewController)
 	GiveAbilities();
 
 	EquipStarterAbilities();
+
+
+
 }
 
 void AKnight::EquipStarterAbilities()
@@ -63,6 +66,10 @@ void AKnight::InitializeAttributes()
 		{
 			FActiveGameplayEffectHandle GEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spechandle.Data.Get());
 		}
+
+
+
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Attributes->GetBalanceAttribute()).AddUObject(this, &AKnight::BalanceChanged);
 	}
 }
 
@@ -75,6 +82,14 @@ void AKnight::GiveAbilities()
 			AbilitySystemComponent->GiveAbility(
 				FGameplayAbilitySpec(Ability, 1, static_cast<int32>(Ability.GetDefaultObject()->AbilityInputID), this));
 		}
+	}
+}
+
+void AKnight::BalanceChanged(const FOnAttributeChangeData& Data)
+{
+	if (Data.Attribute.GetNumericValue(Attributes) <= 0)
+	{
+		FallOver();
 	}
 }
 

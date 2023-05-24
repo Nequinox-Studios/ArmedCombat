@@ -12,6 +12,7 @@
 #include "Knight.generated.h"
 
 class AAC_BaseWeapon;
+struct FOnAttributeChangeData;
 
 
 UCLASS()
@@ -48,4 +49,9 @@ public:
 
 	virtual void InitializeAttributes();
 	virtual void GiveAbilities();
+
+	void BalanceChanged(const FOnAttributeChangeData& Data);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void FallOver();
 };

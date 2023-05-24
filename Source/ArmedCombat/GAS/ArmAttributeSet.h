@@ -19,7 +19,10 @@ class UArmAttributeSet : public UAttributeSet
 
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "Attributes")
-	FGameplayAttributeData Health;
+		FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UArmAttributeSet, Health);
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes")
+		FGameplayAttributeData Balance;
+	ATTRIBUTE_ACCESSORS(UArmAttributeSet, Balance);
 
 };
