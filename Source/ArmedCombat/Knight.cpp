@@ -32,7 +32,7 @@ void AKnight::EquipStarterAbilities()
 	{
 		FActorSpawnParameters SP;
 		SP.Instigator = this;
-		AAC_BaseWeapon* SpawnedWeapon = GetWorld()->SpawnActor<AAC_BaseWeapon>(StarterWeapon, SP);
+		SpawnedWeapon = GetWorld()->SpawnActor<AAC_BaseWeapon>(StarterWeapon, SP);
 		FName SocketName(TEXT("WeaponSocket"));
 		SpawnedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
 

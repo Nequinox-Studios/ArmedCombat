@@ -37,6 +37,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "GAS")
 	TArray<TSubclassOf<UArmedGameplayAbility>> DefaultAbilities;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	AAC_BaseWeapon* SpawnedWeapon = nullptr;
+
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	virtual void PossessedBy(AController* NewController) override;
