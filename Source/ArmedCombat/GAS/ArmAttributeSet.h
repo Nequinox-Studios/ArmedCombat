@@ -27,5 +27,8 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Attributes")
 		FGameplayAttributeData MaxBalance;
 	ATTRIBUTE_ACCESSORS(UArmAttributeSet, MaxBalance);
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes")
+		FGameplayAttributeData DodgeForce;
+	ATTRIBUTE_ACCESSORS(UArmAttributeSet, DodgeForce);
 
 };

@@ -9,9 +9,9 @@
 #include "TargetSpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "GAS/ArmedAbilitySystemComponent.h"
-#include "GAS/ArmedGameplayAbility.h"
-#include "GAS/ArmAttributeSet.h"
+
+
+#include "Math/UnrealMathVectorCommon.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AArmedCombatCharacter
@@ -20,14 +20,14 @@ AArmedCombatCharacter::AArmedCombatCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
+
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
+	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
@@ -40,7 +40,7 @@ AArmedCombatCharacter::AArmedCombatCharacter()
 
 	TargetCameraBoom = CreateDefaultSubobject<UTargetSpringArmComponent>(TEXT("TargetCameraBoom"));
 	TargetCameraBoom->SetupAttachment(RootComponent);
-	TargetCameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
+	TargetCameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character
 	TargetCameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 
 	// Create a follow camera
@@ -52,13 +52,13 @@ AArmedCombatCharacter::AArmedCombatCharacter()
 
 	Attributes = CreateDefaultSubobject<UArmAttributeSet>("Attributes");
 
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
+	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character)
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
 
 void AArmedCombatCharacter::BeginPlay()
 {
-	// Call the base class  
+	// Call the base class
 	Super::BeginPlay();
 
 	//Add Input Mapping Context
@@ -87,21 +87,21 @@ void AArmedCombatCharacter::UpdateCamera(float DeltaTime)
 		FVector targetVector = TargetCameraBoom->CameraTarget->GetActorLocation() - GetActorLocation();
 		FVector NewTargetOffset = FMath::VInterpTo(TargetCameraBoom->TargetOffset, targetVector * LockOnCameraOffsetBias, DeltaTime, LockOnTargetOffsetRate);
 		TargetCameraBoom->TargetOffset = NewTargetOffset;
-		
+
 		FRotator TargetRotator = targetVector.GetSafeNormal().Rotation();
 		TargetRotator.Pitch = PitchBias;
 		FRotator CurrentRotator = GetControlRotation();
-		FRotator NewRotator = FMath::RInterpTo(CurrentRotator, TargetRotator, DeltaTime, LockOnControlRotationRate);		
+		FRotator NewRotator = FMath::RInterpTo(CurrentRotator, TargetRotator, DeltaTime, LockOnControlRotationRate);
 		GetController()->SetControlRotation(NewRotator);
 	}
 	else
 	{
 		FVector NewTargetOffset = FMath::VInterpTo(TargetCameraBoom->TargetOffset, FVector(0.f, 0.f, 0.f), DeltaTime, LockOnTargetOffsetRate);
 		TargetCameraBoom->TargetOffset = NewTargetOffset;
-		
+
 		FRotator CurrentRotator = GetControlRotation();
 		FRotator TargetRotator = FRotator(PitchBias, CurrentRotator.Yaw, 0.f);
-		FRotator NewRotator = FMath::RInterpTo(CurrentRotator, TargetRotator, DeltaTime, FreeCamControlRotationRate);		
+		FRotator NewRotator = FMath::RInterpTo(CurrentRotator, TargetRotator, DeltaTime, FreeCamControlRotationRate);
 		GetController()->SetControlRotation(NewRotator);
 	}
 }
@@ -113,7 +113,7 @@ void AArmedCombatCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 {
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
+
 		//Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
@@ -126,6 +126,10 @@ void AArmedCombatCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 
 		// Lock On Camera // Lock on Always
 		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, TargetCameraBoom, &UTargetSpringArmComponent::ToggleLockOn);
+
+		//Dodge
+		EnhancedInputComponent->BindAction(DodgeLeftAction, ETriggerEvent::Triggered, this, &AArmedCombatCharacter::DodgeLeft);
+		EnhancedInputComponent->BindAction(DodgeRightAction, ETriggerEvent::Triggered, this, &AArmedCombatCharacter::DodgeRight);
 	}
 }
 
@@ -142,11 +146,11 @@ void AArmedCombatCharacter::Move(const FInputActionValue& Value)
 
 		// get forward vector
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
-		// get right vector 
+
+		// get right vector
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-		// add movement 
+		// add movement
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
 	}
@@ -157,7 +161,7 @@ void AArmedCombatCharacter::Look(const FInputActionValue& Value)
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
-	
+
 	{
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
@@ -166,7 +170,7 @@ void AArmedCombatCharacter::Look(const FInputActionValue& Value)
 }
 
 //////////////////////////////////////////////////////////////////////////
-// 
+//
 
 UAbilitySystemComponent* AArmedCombatCharacter::GetAbilitySystemComponent() const
 {
@@ -175,7 +179,7 @@ UAbilitySystemComponent* AArmedCombatCharacter::GetAbilitySystemComponent() cons
 
 void AArmedCombatCharacter::InitializeAttributes()
 {
-	/*if (AbilitySystemComponent && DefaultAttributeEffect)
+	if (AbilitySystemComponent && DefaultAttributeEffect)
 	{
 		FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
 		EffectContext.AddSourceObject(this);
@@ -186,19 +190,19 @@ void AArmedCombatCharacter::InitializeAttributes()
 		{
 			FActiveGameplayEffectHandle GEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spechandle.Data.Get());
 		}
-	}*/
+	}
 }
 
 void AArmedCombatCharacter::GiveAbilities()
 {
-	/*if (HasAuthority() && AbilitySystemComponent)
+	if (HasAuthority() && AbilitySystemComponent)
 	{
 		for (TSubclassOf<UArmedGameplayAbility>& Ability : DefaultAbilities)
 		{
 			AbilitySystemComponent->GiveAbility(
-				FGameplayAbilitySpec(Ability,1, static_cast<int32>(Ability.GetDefaultObject()->AbilityInputID),this));
+				FGameplayAbilitySpec(Ability, 1, static_cast<int32>(Ability.GetDefaultObject()->AbilityInputID), this));
 		}
-	}*/
+	}
 }
 
 void AArmedCombatCharacter::PossessedBy(AController* NewController)
@@ -206,6 +210,62 @@ void AArmedCombatCharacter::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 	AbilitySystemComponent->InitAbilityActorInfo(this,this);
 
-	InitializeAttributes(); 
+	InitializeAttributes();
 	GiveAbilities();
+}
+
+void AArmedCombatCharacter::DodgeLeft(const FInputActionValue& Value)
+{
+	PlayDodgeAnimations(EDodgeDirection::Left);
+	if (Controller != nullptr)
+	{
+		// find out which way is forward
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+//
+// 		// add movement
+// 		AddMovementInput(-RightDirection, Attributes->DodgeForce.GetCurrentValue());
+
+	FVector Targetlocation = GetActorLocation() + ( -(GetCameraBoom()->GetRightVector()  * Attributes->DodgeForce.GetCurrentValue()));
+	float Counter = 0;
+// 		while(FVector::Dist(GetActorLocation(),Targetlocation)>100)
+// 		{
+//
+//
+// 		//SetActorLocation(FMath::Lerp(GetActorLocation(), Targetlocation, Counter));
+//
+// 		Counter += 0.01f;// GetWorld()->GetDeltaSeconds();
+// 		}
+
+		GetMovementComponent()->Velocity = ((-GetCameraBoom()->GetRightVector()) * Attributes->DodgeForce.GetCurrentValue()) + (GetActorUpVector()*10);
+	}
+}
+
+void AArmedCombatCharacter::DodgeRight(const FInputActionValue& Value)
+{
+	PlayDodgeAnimations(EDodgeDirection::Right);
+	if (Controller != nullptr)
+	{
+		// find out which way is forward
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+//
+// 		// add movement
+// 		AddMovementInput(RightDirection, Attributes->DodgeForce.GetCurrentValue());
+		FVector Targetlocation = GetActorLocation() +((GetCameraBoom()->GetRightVector() * Attributes->DodgeForce.GetCurrentValue()));
+
+// 		float Counter = 0;
+// 		while (FVector::Dist(GetActorLocation(), Targetlocation) > 100)
+// 		{
+//
+//
+// 			//SetActorLocation(FMath::Lerp(GetActorLocation(), Targetlocation, Counter));
+//
+// 			Counter += 0.01f;// GetWorld()->GetDeltaSeconds();
+// 		}
+
+		GetMovementComponent()->Velocity = ((GetCameraBoom()->GetRightVector()) * Attributes->DodgeForce.GetCurrentValue()) + (GetActorUpVector() * 10);
+	}
+
 }

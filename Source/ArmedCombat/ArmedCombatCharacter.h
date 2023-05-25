@@ -8,7 +8,23 @@
 #include "AbilitySystemInterface.h"
 //#include "GameplayEffectTypes.h"
 
+
+#include "GAS/ArmedAbilitySystemComponent.h"
+#include "GAS/ArmedGameplayAbility.h"
+#include "GAS/ArmAttributeSet.h"
+
 #include "ArmedCombatCharacter.generated.h"
+
+class UInputAction;
+class UInputMappingContext;
+
+UENUM(BlueprintType)
+enum EDodgeDirection
+{
+	Left,
+	Right
+};
+
 
 UCLASS(config=Game)
 class AArmedCombatCharacter : public ACharacter, public IAbilitySystemInterface
@@ -18,30 +34,38 @@ class AArmedCombatCharacter : public ACharacter, public IAbilitySystemInterface
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UTargetSpringArmComponent* TargetCameraBoom;
-	
+
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
-	
+
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputMappingContext* DefaultMappingContext;
+	UInputMappingContext* DefaultMappingContext;
 
 	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* JumpAction;
+	UInputAction* JumpAction;
 
 	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* MoveAction;
+	UInputAction* MoveAction;
 
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* LookAction;
+	UInputAction* LookAction;
 
 	/** Lock Camera on Target Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* LockOnAction;
+	UInputAction* LockOnAction;
+
+	/** Lock Camera on Target Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	 UInputAction* DodgeLeftAction;
+
+	/** Lock Camera on Target Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* DodgeRightAction;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UArmedAbilitySystemComponent* AbilitySystemComponent;
@@ -50,15 +74,15 @@ class AArmedCombatCharacter : public ACharacter, public IAbilitySystemInterface
 	class UArmAttributeSet* Attributes;
 
 public:
-	/*UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category ="GAS")
-	TSubclassOf<UGameplayEffect> DefaultAttributeEffect;
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "GAS")
+		TSubclassOf<UGameplayEffect> DefaultAttributeEffect;
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "GAS")
-	TArray<TSubclassOf<UArmedGameplayAbility>> DefaultAbilities;*/
+		TArray<TSubclassOf<UArmedGameplayAbility>> DefaultAbilities;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target Lock Camera")
 	float LockOnControlRotationRate { 3.f };
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target Lock Camera")
 	float LockOnTargetOffsetRate { 4.f };
 
@@ -85,7 +109,7 @@ protected:
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+
 	// To add mapping context
 	virtual void BeginPlay();
 
@@ -104,5 +128,13 @@ public:
 	FORCEINLINE class UTargetSpringArmComponent* GetCameraBoom() const { return TargetCameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+
+	void DodgeLeft(const FInputActionValue& Value);
+	void DodgeRight(const FInputActionValue& Value);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayDodgeAnimations(EDodgeDirection dodgeDirection);
+
 };
 
