@@ -89,6 +89,7 @@ void AKnight::BalanceChanged(const FOnAttributeChangeData& Data)
 {
 	if (Data.Attribute.GetNumericValue(Attributes) <= 0)
 	{
+		GetAbilitySystemComponent()->CancelAbilities(); //CancelAllAbilities();
 		FallOver();
 		GetWorld()->GetTimerManager().SetTimer(GetUpTimerHandle,this,&AKnight::GetUp,StayDownTime,false);
 	}
