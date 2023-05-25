@@ -217,55 +217,11 @@ void AArmedCombatCharacter::PossessedBy(AController* NewController)
 void AArmedCombatCharacter::DodgeLeft(const FInputActionValue& Value)
 {
 	PlayDodgeAnimations(EDodgeDirection::Left);
-	if (Controller != nullptr)
-	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-//
-// 		// add movement
-// 		AddMovementInput(-RightDirection, Attributes->DodgeForce.GetCurrentValue());
-
-	FVector Targetlocation = GetActorLocation() + ( -(GetCameraBoom()->GetRightVector()  * Attributes->DodgeForce.GetCurrentValue()));
-	float Counter = 0;
-// 		while(FVector::Dist(GetActorLocation(),Targetlocation)>100)
-// 		{
-//
-//
-// 		//SetActorLocation(FMath::Lerp(GetActorLocation(), Targetlocation, Counter));
-//
-// 		Counter += 0.01f;// GetWorld()->GetDeltaSeconds();
-// 		}
-
-		GetMovementComponent()->Velocity = ((-GetCameraBoom()->GetRightVector()) * Attributes->DodgeForce.GetCurrentValue()) + (GetActorUpVector()*10);
-	}
+	GetMovementComponent()->Velocity = ((-GetCameraBoom()->GetRightVector()) * Attributes->DodgeForce.GetCurrentValue()) + (GetActorUpVector()*10);
 }
 
 void AArmedCombatCharacter::DodgeRight(const FInputActionValue& Value)
 {
 	PlayDodgeAnimations(EDodgeDirection::Right);
-	if (Controller != nullptr)
-	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-//
-// 		// add movement
-// 		AddMovementInput(RightDirection, Attributes->DodgeForce.GetCurrentValue());
-		FVector Targetlocation = GetActorLocation() +((GetCameraBoom()->GetRightVector() * Attributes->DodgeForce.GetCurrentValue()));
-
-// 		float Counter = 0;
-// 		while (FVector::Dist(GetActorLocation(), Targetlocation) > 100)
-// 		{
-//
-//
-// 			//SetActorLocation(FMath::Lerp(GetActorLocation(), Targetlocation, Counter));
-//
-// 			Counter += 0.01f;// GetWorld()->GetDeltaSeconds();
-// 		}
-
-		GetMovementComponent()->Velocity = ((GetCameraBoom()->GetRightVector()) * Attributes->DodgeForce.GetCurrentValue()) + (GetActorUpVector() * 10);
-	}
-
+	GetMovementComponent()->Velocity = ((GetCameraBoom()->GetRightVector()) * Attributes->DodgeForce.GetCurrentValue()) + (GetActorUpVector() * 10);
 }
