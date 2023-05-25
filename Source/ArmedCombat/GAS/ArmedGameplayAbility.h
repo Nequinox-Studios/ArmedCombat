@@ -3,6 +3,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "../AttackDecalAsset.h"
 #include "ArmedGameplayAbility.generated.h"
 
 //Old input style if you're using enhanced input there is a better tag based system look at the Lyra example project.
@@ -25,10 +26,14 @@ UCLASS()
 class UArmedGameplayAbility : public UGameplayAbility
 {
 	GENERATED_BODY()
+
 	UPROPERTY(EditDefaultsOnly)
 	FGameplayTag InputTag;
 
 public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability")
 	EGASAbilityInputID AbilityInputID = EGASAbilityInputID::None;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability")
+	URadialAttackDecalAsset* AttackDecalStruct;
 };
