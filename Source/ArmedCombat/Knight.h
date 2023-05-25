@@ -54,4 +54,10 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void FallOver();
+	UPROPERTY(EditDefaultsOnly)
+	float StayDownTime = 2;
+	FTimerHandle GetUpTimerHandle;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void GetUp();
 };
