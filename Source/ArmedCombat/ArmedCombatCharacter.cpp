@@ -273,7 +273,10 @@ void AArmedCombatCharacter::Attack(const FInputActionValue& Value)
 
 void AArmedCombatCharacter::StopAttacking()
 {
-	IsAttacking = false;
+	if (!HasGrabbedKnight)
+	{
+		IsAttacking = false;
+	}
 	AttackTimerHandle.Invalidate();
 }
 
