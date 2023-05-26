@@ -10,7 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 
-
+#include "ArmedCombat\Knight.h"
 #include "Math/UnrealMathVectorCommon.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -106,6 +106,8 @@ void AArmedCombatCharacter::UpdateCamera(float DeltaTime)
 	}
 }
 
+
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -130,6 +132,11 @@ void AArmedCombatCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 		//Dodge
 		EnhancedInputComponent->BindAction(DodgeLeftAction, ETriggerEvent::Triggered, this, &AArmedCombatCharacter::DodgeLeft);
 		EnhancedInputComponent->BindAction(DodgeRightAction, ETriggerEvent::Triggered, this, &AArmedCombatCharacter::DodgeRight);
+
+		//Attack
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AArmedCombatCharacter::Attack);
+
+
 	}
 }
 
@@ -138,21 +145,29 @@ void AArmedCombatCharacter::Move(const FInputActionValue& Value)
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
-	if (Controller != nullptr)
+	if (HasGrabbedKnight && GrabbedKnight)
 	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get forward vector
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		PullKnight();
+	}
+	else
+	{
+		if (Controller != nullptr)
+		{
+			// find out which way is forward
+			const FRotator Rotation = Controller->GetControlRotation();
+			const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get right vector
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+			// get forward vector
+			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 
-		// add movement
-		AddMovementInput(ForwardDirection, MovementVector.Y);
-		AddMovementInput(RightDirection, MovementVector.X);
+			// get right vector
+			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+			// add movement
+			AddMovementInput(ForwardDirection, MovementVector.Y);
+			AddMovementInput(RightDirection, MovementVector.X);
+		}
 	}
 }
 
@@ -216,12 +231,69 @@ void AArmedCombatCharacter::PossessedBy(AController* NewController)
 
 void AArmedCombatCharacter::DodgeLeft(const FInputActionValue& Value)
 {
-	PlayDodgeAnimations(EDodgeDirection::Left);
-	GetMovementComponent()->Velocity = ((-GetCameraBoom()->GetRightVector()) * Attributes->DodgeForce.GetCurrentValue());// + (GetActorUpVector()*100);
+	if (HasGrabbedKnight && GrabbedKnight)
+	{
+
+		PullKnight();
+	}
+	else
+	{
+		PlayDodgeAnimations(EDodgeDirection::Left);
+		GetMovementComponent()->Velocity = ((-GetFollowCamera()->GetRightVector()) * Attributes->DodgeForce.GetCurrentValue());
+	}
 }
 
 void AArmedCombatCharacter::DodgeRight(const FInputActionValue& Value)
 {
-	PlayDodgeAnimations(EDodgeDirection::Right);
-	GetMovementComponent()->Velocity = ((GetCameraBoom()->GetRightVector()) * Attributes->DodgeForce.GetCurrentValue());// + (GetActorUpVector() * 100);
+	if (HasGrabbedKnight && GrabbedKnight)
+	{
+
+		PullKnight();
+	}
+	else
+	{
+		PlayDodgeAnimations(EDodgeDirection::Right);
+		GetMovementComponent()->Velocity = ((GetFollowCamera()->GetRightVector()) * Attributes->DodgeForce.GetCurrentValue());
+	}
 }
+
+void AArmedCombatCharacter::Attack(const FInputActionValue& Value)
+{
+	if(GetMovementComponent()->IsFalling())
+	{
+		return;
+	}
+
+
+		GetMovementComponent()->Velocity = ((GetActorForwardVector()) * Attributes->DodgeForce.GetCurrentValue());
+		IsAttacking = true;
+		GetWorldTimerManager().SetTimer(AttackTimerHandle,this,&AArmedCombatCharacter::StopAttacking, Attributes->AttackLength.GetCurrentValue(),false);
+
+}
+
+void AArmedCombatCharacter::StopAttacking()
+{
+	IsAttacking = false;
+	AttackTimerHandle.Invalidate();
+}
+
+void AArmedCombatCharacter::Jump()
+{
+	if (HasGrabbedKnight && GrabbedKnight)
+	{
+
+		PullKnight();
+	}
+	else
+	{
+		ACharacter::Jump();
+	}
+}
+
+void AArmedCombatCharacter::PullKnight()
+{
+	GetMovementComponent()->Velocity = (-GetActorForwardVector() * 100);;
+
+	ApplyPullEffectToGrabbedKnight();
+}
+

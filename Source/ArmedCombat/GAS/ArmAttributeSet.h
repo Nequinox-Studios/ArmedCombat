@@ -30,5 +30,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Attributes")
 		FGameplayAttributeData DodgeForce;
 	ATTRIBUTE_ACCESSORS(UArmAttributeSet, DodgeForce);
-
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes")
+		FGameplayAttributeData AttackLength;
+	ATTRIBUTE_ACCESSORS(UArmAttributeSet, AttackLength);
 };

@@ -17,6 +17,7 @@
 
 class UInputAction;
 class UInputMappingContext;
+class AKnight;
 
 UENUM(BlueprintType)
 enum EDodgeDirection
@@ -59,13 +60,15 @@ class AArmedCombatCharacter : public ACharacter, public IAbilitySystemInterface
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LockOnAction;
 
-	/** Lock Camera on Target Input Action */
+	/**Dodge Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	 UInputAction* DodgeLeftAction;
-
-	/** Lock Camera on Target Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* DodgeRightAction;
+
+	/** Attack Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* AttackAction;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UArmedAbilitySystemComponent* AbilitySystemComponent;
@@ -136,5 +139,26 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void PlayDodgeAnimations(EDodgeDirection dodgeDirection);
 
+
+	void Attack(const FInputActionValue& Value);
+	UFUNCTION()
+	void StopAttacking();
+	FTimerHandle AttackTimerHandle;
+
+
+	virtual void Jump() override ;
+
+	void PullKnight();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ApplyPullEffectToGrabbedKnight();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	bool IsAttacking = false;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	bool HasGrabbedKnight = false;
+
+	UPROPERTY(BlueprintReadWrite)
+	AKnight* GrabbedKnight = nullptr;
 };
 
