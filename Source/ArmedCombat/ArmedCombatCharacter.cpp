@@ -217,11 +217,11 @@ void AArmedCombatCharacter::PossessedBy(AController* NewController)
 void AArmedCombatCharacter::DodgeLeft(const FInputActionValue& Value)
 {
 	PlayDodgeAnimations(EDodgeDirection::Left);
-	GetMovementComponent()->Velocity = ((-GetCameraBoom()->GetRightVector()) * Attributes->DodgeForce.GetCurrentValue());// + (GetActorUpVector()*100);
+	GetMovementComponent()->Velocity = ((-GetFollowCamera()->GetRightVector()) * Attributes->DodgeForce.GetCurrentValue());// + (GetActorUpVector()*100);
 }
 
 void AArmedCombatCharacter::DodgeRight(const FInputActionValue& Value)
 {
 	PlayDodgeAnimations(EDodgeDirection::Right);
-	GetMovementComponent()->Velocity = ((GetCameraBoom()->GetRightVector()) * Attributes->DodgeForce.GetCurrentValue());// + (GetActorUpVector() * 100);
+	GetMovementComponent()->Velocity = ((GetFollowCamera()->GetRightVector()) * Attributes->DodgeForce.GetCurrentValue());// + (GetActorUpVector() * 100);
 }
